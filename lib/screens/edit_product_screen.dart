@@ -73,17 +73,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void _updateImageUrl() {
     if (!_imageUrlFocusNode.hasFocus) {
       if ((!_imageUrlController.text.startsWith('http') &&
-              !_imageUrlController.text.startsWith('https')) ||
-          (!_imageUrlController.text.endsWith('.png') &&
+              !_imageUrlController.text.startsWith('https'))
+         ) {
+        /*|| (!_imageUrlController.text.endsWith('.png') &&
               !_imageUrlController.text.endsWith('.jpg') &&
-              !_imageUrlController.text.endsWith('.jpeg'))) {
+              !_imageUrlController.text.endsWith('.jpeg'))*/
         return;
       }
       setState(() {});
     }
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     final isValid = _form.currentState.validate();
     if (!isValid) {
       return;
@@ -93,35 +94,40 @@ class _EditProductScreenState extends State<EditProductScreen> {
       _isLoading = true;
     });
     if (_editedProduct.id != null) {
-      Provider.of<Products>(context, listen: false)
+      await Provider.of<Products>(context, listen: false)
           .updateProduct(_editedProduct.id, _editedProduct);
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pop();
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_editedProduct)
-          .catchError((error) {
-        return  showDialog<Null>(
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_editedProduct);
+      } catch (error) {
+        await showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
                 title: Text('An error occurred!'),
                 content: Text('Something went wrong.'),
                 actions: <Widget>[
-                  FlatButton(child: Text('Okay'), onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },)
+                  FlatButton(
+                    child: Text('Okay'),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                  )
                 ],
               ),
         );
-      }).then((_) {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
-      });
+      }
+      // finally {
+      //   setState(() {
+      //     _isLoading = false;
+      //   });
+      //   Navigator.of(context).pop();
+      // }
     }
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.of(context).pop();
     // Navigator.of(context).pop();
   }
 
@@ -271,11 +277,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                   !value.startsWith('https')) {
                                 return 'Please enter a valid URL.';
                               }
-                              if (!value.endsWith('.png') &&
+                              /*if (!value.endsWith('.png') &&
                                   !value.endsWith('.jpg') &&
                                   !value.endsWith('.jpeg')) {
                                 return 'Please enter a valid image URL.';
-                              }
+                              }*/
                               return null;
                             },
                             onSaved: (value) {
